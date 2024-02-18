@@ -10,11 +10,18 @@ import (
 
 // getCmd represents the get command
 var getCmd = &cobra.Command{
-	Use:   "get <note>",
-	Short: "Get contents of a note",
-	RunE:  runGetCmd,
-	Args:  cobra.ExactArgs(1),
-  Aliases: []string{"g", "show", "read"},
+	Use:     "get <note>",
+	Short:   "Get contents of a note",
+	RunE:    runGetCmd,
+	Args:    cobra.MatchAll(cobra.ExactArgs(1), cobra.OnlyValidArgs),
+	Aliases: []string{"g", "show", "read"},
+	ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+		notes, err := listNotes()
+		if err != nil {
+			return nil, cobra.ShellCompDirectiveError
+		}
+		return notes, cobra.ShellCompDirectiveNoFileComp
+	},
 }
 
 func init() {

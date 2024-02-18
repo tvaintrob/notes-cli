@@ -17,6 +17,13 @@ var editCmd = &cobra.Command{
 	Args:    cobra.RangeArgs(1, 2),
 	RunE:    runEditCmd,
 	Aliases: []string{"e", "set", "update"},
+	ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+		notes, err := listNotes()
+		if err != nil {
+			return nil, cobra.ShellCompDirectiveError
+		}
+		return notes, cobra.ShellCompDirectiveNoFileComp
+	},
 }
 
 func init() {
