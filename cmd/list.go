@@ -19,9 +19,6 @@ func init() {
 }
 
 func runListCmd(cmd *cobra.Command, args []string) error {
-	fmt.Println("listing notes from:", notesDir)
-
-	// List all notes from the notes directory
 	entries, err := os.ReadDir(notesDir)
 	if err != nil {
 		return err
