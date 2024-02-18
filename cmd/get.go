@@ -1,30 +1,36 @@
 package cmd
 
 import (
-	"fmt"
+	"io"
+	"os"
+	"path"
 
 	"github.com/spf13/cobra"
 )
 
 // getCmd represents the get command
 var getCmd = &cobra.Command{
-	Use:   "get",
+	Use:   "get <note>",
 	Short: "Get contents of a note",
-	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("get called")
-	},
+	RunE:  runGetCmd,
+	Args:  cobra.ExactArgs(1),
+  Aliases: []string{"g", "show", "read"},
 }
 
 func init() {
 	rootCmd.AddCommand(getCmd)
+}
 
-	// Here you will define your flags and configuration settings.
+func runGetCmd(cmd *cobra.Command, args []string) error {
+	noteKey := args[0]
+	notePath := path.Join(notesDir, noteKey)
 
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// getCmd.PersistentFlags().String("foo", "", "A help for foo")
+	f, err := os.Open(notePath)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
 
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// getCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	_, err = io.Copy(os.Stdout, f)
+	return err
 }

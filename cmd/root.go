@@ -3,12 +3,16 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"path"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
 
-var cfgFile string
+var (
+	cfgFile  string
+	notesDir string
+)
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
@@ -28,15 +32,16 @@ func Execute() {
 func init() {
 	cobra.OnInitialize(initConfig)
 
-	// Here you will define your flags and configuration settings.
-	// Cobra supports persistent flags, which, if defined here,
-	// will be global for your application.
+	// Find home directory.
+	home, err := os.UserHomeDir()
+	cobra.CheckErr(err)
 
-	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.notes-cli.yaml)")
+  rootCmd.PersistentFlags().StringVar(&notesDir, "notes-dir", path.Join(home, ".notes"), "notes directory")
+	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", path.Join(home, ".notes-cli.yaml"), "config file")
 
-	// Cobra also supports local flags, which will only run
-	// when this action is called directly.
-	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	if err := viper.BindPFlag("notes_dir", rootCmd.PersistentFlags().Lookup("notes-dir")); err != nil {
+		fmt.Fprintln(os.Stderr, "Error binding flag:", err)
+	}
 }
 
 // initConfig reads in config file and ENV variables if set.

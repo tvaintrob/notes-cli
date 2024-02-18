@@ -1,30 +1,59 @@
 package cmd
 
 import (
-	"fmt"
+	"os"
+	"os/exec"
+	"path"
 
 	"github.com/spf13/cobra"
 )
 
+const defaultEditor = "vim"
+
 // editCmd represents the edit command
 var editCmd = &cobra.Command{
-	Use:   "edit",
-	Short: "Edit contents of a note",
-	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("edit called")
-	},
+	Use:     "edit",
+	Short:   "Edit contents of a note",
+	Args:    cobra.RangeArgs(1, 2),
+	RunE:    runEditCmd,
+	Aliases: []string{"e", "set", "update"},
 }
 
 func init() {
 	rootCmd.AddCommand(editCmd)
+}
 
-	// Here you will define your flags and configuration settings.
+func runEditCmd(cmd *cobra.Command, args []string) error {
+	var noteKey, noteValue string
+	noteKey = args[0]
+	notePath := path.Join(notesDir, noteKey)
 
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// editCmd.PersistentFlags().String("foo", "", "A help for foo")
+	// Create the notes directory if it doesn't exist
+	if _, err := os.Stat(notesDir); os.IsNotExist(err) {
+		err := os.Mkdir(notesDir, 0755)
+		if err != nil {
+			return err
+		}
+	}
 
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// editCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	if len(args) == 2 {
+		noteValue = args[1]
+		return os.WriteFile(notePath, []byte(noteValue), 0644)
+	}
+
+	editor := os.Getenv("EDITOR")
+	if editor == "" {
+		editor = defaultEditor
+	}
+
+	return editInEditor(editor, notePath)
+}
+
+func editInEditor(editor, notePath string) error {
+	cmd := exec.Command(editor, notePath)
+	cmd.Stdin = os.Stdin
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+
+	return cmd.Run()
 }
