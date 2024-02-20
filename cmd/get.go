@@ -1,10 +1,11 @@
 package cmd
 
 import (
-	"io"
+	"fmt"
 	"os"
 	"path"
 
+	"github.com/charmbracelet/glamour"
 	"github.com/spf13/cobra"
 )
 
@@ -31,13 +32,23 @@ func init() {
 func runGetCmd(cmd *cobra.Command, args []string) error {
 	noteKey := args[0]
 	notePath := path.Join(notesDir, noteKey)
-
-	f, err := os.Open(notePath)
+	noteContent, err := os.ReadFile(notePath)
 	if err != nil {
 		return err
 	}
-	defer f.Close()
 
-	_, err = io.Copy(os.Stdout, f)
-	return err
+	if isOutputPiped() {
+		fmt.Println(string(noteContent))
+	} else {
+		out, err := glamour.Render(string(noteContent), "dark")
+		fmt.Println(out)
+		return err
+	}
+
+	return nil
+}
+
+func isOutputPiped() bool {
+	fi, _ := os.Stdout.Stat()
+	return (fi.Mode() & os.ModeCharDevice) == 0
 }
