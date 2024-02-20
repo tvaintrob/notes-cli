@@ -4,10 +4,14 @@ import (
 	"fmt"
 	"os"
 	"path"
+	"strings"
 
 	"github.com/charmbracelet/glamour"
 	"github.com/spf13/cobra"
+	"golang.design/x/clipboard"
 )
+
+var noClip bool
 
 // getCmd represents the get command
 var getCmd = &cobra.Command{
@@ -27,6 +31,7 @@ var getCmd = &cobra.Command{
 
 func init() {
 	rootCmd.AddCommand(getCmd)
+	getCmd.Flags().BoolVarP(&noClip, "no-clip", "C", false, "Disable clipboard copy")
 }
 
 func runGetCmd(cmd *cobra.Command, args []string) error {
@@ -37,15 +42,23 @@ func runGetCmd(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	if isOutputPiped() {
-		fmt.Println(string(noteContent))
-	} else {
-		out, err := glamour.Render(string(noteContent), "dark")
-		fmt.Println(out)
+	trimmed := strings.TrimSpace(string(noteContent))
+	if err := clipboard.Init(); err != nil {
 		return err
 	}
 
-	return nil
+	if !noClip {
+		clipboard.Write(clipboard.FmtText, []byte(trimmed))
+	}
+
+	if isOutputPiped() {
+		fmt.Println(trimmed)
+		return nil
+	}
+
+	out, err := glamour.RenderWithEnvironmentConfig(trimmed)
+	fmt.Println(out)
+	return err
 }
 
 func isOutputPiped() bool {
