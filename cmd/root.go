@@ -36,7 +36,7 @@ func init() {
 	home, err := os.UserHomeDir()
 	cobra.CheckErr(err)
 
-  rootCmd.PersistentFlags().StringVar(&notesDir, "notes-dir", path.Join(home, ".notes"), "notes directory")
+	rootCmd.PersistentFlags().StringVar(&notesDir, "notes-dir", path.Join(home, ".notes"), "notes directory")
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", path.Join(home, ".notes-cli.yaml"), "config file")
 
 	if err := viper.BindPFlag("notes_dir", rootCmd.PersistentFlags().Lookup("notes-dir")); err != nil {
