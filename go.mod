@@ -1,6 +1,6 @@
 module github.com/tvaintrob/notes-cli
 
-go 1.21.7
+go 1.21
 
 require (
 	github.com/charmbracelet/glamour v0.6.0
